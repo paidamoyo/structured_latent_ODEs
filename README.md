@@ -1,6 +1,6 @@
 # Capturing Actionable Dynamics with Structured Latent Ordinary Differential Equations (UAI 2022)
 
-This repository contains the Pytorch code to replicate experiments in our paper [Capturing Actionable Dynamics with Structured Latent Ordinary Differential Equations](https://openreview.net/forum?id=Sbxu8Ujqg9) accepted at Conference on Uncertainty in Artificial Intelligence (UAI 2022):
+This repository contains the Pytorch code to replicate experiments in our paper [Capturing Actionable Dynamics with Structured Latent Ordinary Differential Equations](https://proceedings.mlr.press/v180/chapfuwa22a/chapfuwa22a.pdf) accepted at Conference on Uncertainty in Artificial Intelligence (UAI 2022):
 
 ```latex
 @inproceedings{chapfuwa2022capturing,
