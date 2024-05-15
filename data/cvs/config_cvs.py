@@ -44,6 +44,6 @@ def load_config():
     args.solver = "midpoint"
     args.constant_std = 1e-2
     # args.solver = 'rk4'
-    # select from [GOKU, Latent, Hierarchical, Mechanistic, MechanisticGauss] # MechanisticGauss is the ablation model
+    # select from  [Mechanistic, MechanisticGauss] # MechanisticGauss is the ablation model
     args.model = "Mechanistic"
     return args

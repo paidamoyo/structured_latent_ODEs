@@ -13,8 +13,6 @@ from pyro.optim import Adam
 from utils.plotting import individual_cvs, visualize_latent
 from models.mechanistic_cvs import MechanisticModel
 from models.mechanistic_cvs_Gauss import MechanisticModelGauss
-from models.latent_ODE_cvs import LatentODEModel
-from models.hierarchical_ODE_cvs import HierarchicalModel
 
 
 def batch_to_device(d, device):
@@ -206,11 +204,8 @@ def train(config):
     times = torch.arange(
         0.0, end=config.seq_len * config.delta_t, step=config.delta_t, device=device
     )
-    if config.model in ["GOKU", "Latent"]:
-        selected = LatentODEModel
-    elif config.model == "Hierarchical":
-        selected = HierarchicalModel
-    elif config.model == "Mechanistic":
+
+    if config.model == "Mechanistic":
         selected = MechanisticModel
     elif config.model == "MechanisticGauss":
         selected = MechanisticModelGauss

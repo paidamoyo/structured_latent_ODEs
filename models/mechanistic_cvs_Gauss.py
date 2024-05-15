@@ -45,7 +45,7 @@ class MechanisticModelGauss(nn.Module):
         self.latent_dim = self.z_iext_dim + self.z_rtpr_dim + self.z_epsilon_dim
 
         self.device = device
-        self.use_cuda = device != 'cpu'
+        self.use_cuda = device != "cpu"
         self.epsilon = 1e-8
 
         self.u_hidden_dim = config.u_hidden_dim
@@ -68,7 +68,8 @@ class MechanisticModelGauss(nn.Module):
             activation=nn.Softplus,
             output_activation=nn.Sigmoid,
             allow_broadcast=self.allow_broadcast,
-            use_cuda=self.use_cuda)
+            use_cuda=self.use_cuda,
+        )
 
         # Posterior over rtpr (classifier)
         self.q_rtpr_given_z_rtpr = EncoderMLP(
@@ -76,32 +77,44 @@ class MechanisticModelGauss(nn.Module):
             activation=nn.Softplus,
             output_activation=nn.Sigmoid,
             allow_broadcast=self.allow_broadcast,
-            use_cuda=self.use_cuda)
+            use_cuda=self.use_cuda,
+        )
 
         # Posterior over z
-        self.encoder = EncoderCONV(n_channels=self.n_channels, n_time=self.n_time, n_filters=self.n_filters,
-                                   filter_size=self.filter_size, pool_size=self.pool_size,
-                                   latent_dim=self.latent_dim,
-                                   hidden_dim=self.cnn_hidden_dim)
+        self.encoder = EncoderCONV(
+            n_channels=self.n_channels,
+            n_time=self.n_time,
+            n_filters=self.n_filters,
+            filter_size=self.filter_size,
+            pool_size=self.pool_size,
+            latent_dim=self.latent_dim,
+            hidden_dim=self.cnn_hidden_dim,
+        )
 
         # Prior over z_iext and z_rtpr
-        self.p_z_iext_given_iext = EncoderMLP(mlp_sizes=[self.iext_dim] + [
-            [self.z_iext_dim, self.z_iext_dim]],
-                                              activation=nn.Softplus,
-                                              output_activation=[None, Exp],
-                                              allow_broadcast=self.allow_broadcast,
-                                              use_cuda=self.use_cuda)
+        self.p_z_iext_given_iext = EncoderMLP(
+            mlp_sizes=[self.iext_dim] + [[self.z_iext_dim, self.z_iext_dim]],
+            activation=nn.Softplus,
+            output_activation=[None, Exp],
+            allow_broadcast=self.allow_broadcast,
+            use_cuda=self.use_cuda,
+        )
 
-        self.p_z_rtprs_given_rtprs = EncoderMLP(mlp_sizes=[self.rtpr_dim] + [
-            [self.z_rtpr_dim, self.z_rtpr_dim]],
-                                                activation=nn.Softplus,
-                                                output_activation=[None, Exp],
-                                                allow_broadcast=self.allow_broadcast,
-                                                use_cuda=self.use_cuda)
+        self.p_z_rtprs_given_rtprs = EncoderMLP(
+            mlp_sizes=[self.rtpr_dim] + [[self.z_rtpr_dim, self.z_rtpr_dim]],
+            activation=nn.Softplus,
+            output_activation=[None, Exp],
+            allow_broadcast=self.allow_broadcast,
+            use_cuda=self.use_cuda,
+        )
 
         # Likelihood over observations
-        self.decoder = GaussianDecoder(config=self.config, times=self.times, latent_dim=self.latent_dim,
-                                       device=self.device)
+        self.decoder = GaussianDecoder(
+            config=self.config,
+            times=self.times,
+            latent_dim=self.latent_dim,
+            device=self.device,
+        )
 
     def model(self, observations, iext, rtpr):
         """
@@ -126,14 +139,24 @@ class MechanisticModelGauss(nn.Module):
             prior_loc = torch.zeros(batch_size, self.z_epsilon_dim, **options)
             prior_scale = torch.ones(batch_size, self.z_epsilon_dim, **options)
 
-            z_epsilon = pyro.sample("z_epsilon", dist.Normal(prior_loc, prior_scale).to_event(1))  # p(z_not_c)
+            z_epsilon = pyro.sample(
+                "z_epsilon", dist.Normal(prior_loc, prior_scale).to_event(1)
+            )  # p(z_not_c)
 
             # print("iext: ", iext.shape)
-            z_iext_loc, z_iext_scale = self.p_z_iext_given_iext.forward(iext)  # p(z_iext|iext)
-            z_iext = pyro.sample("z_iext", dist.Normal(z_iext_loc, z_iext_scale).to_event(1))
+            z_iext_loc, z_iext_scale = self.p_z_iext_given_iext.forward(
+                iext
+            )  # p(z_iext|iext)
+            z_iext = pyro.sample(
+                "z_iext", dist.Normal(z_iext_loc, z_iext_scale).to_event(1)
+            )
 
-            z_rtpr_loc, z_rtpr_scale = self.p_z_rtprs_given_rtprs.forward(rtpr)  # p(z_rtpr|rtpr)
-            z_rtpr = pyro.sample("z_rtpr", dist.Normal(z_rtpr_loc, z_rtpr_scale).to_event(1))
+            z_rtpr_loc, z_rtpr_scale = self.p_z_rtprs_given_rtprs.forward(
+                rtpr
+            )  # p(z_rtpr|rtpr)
+            z_rtpr = pyro.sample(
+                "z_rtpr", dist.Normal(z_rtpr_loc, z_rtpr_scale).to_event(1)
+            )
             # pass as tensor z
             z = torch.cat((z_iext, z_rtpr), dim=1)
             z = torch.cat((z, z_epsilon), dim=1)
@@ -157,17 +180,25 @@ class MechanisticModelGauss(nn.Module):
         with pyro.plate("data"):
             loc_z, scale_z = self.encoder.forward(observations)  # q(z_not_c|x)
 
-            z_iext = pyro.sample("z_iext",
-                                 dist.Normal(loc_z[:, 0:self.z_iext_dim],
-                                             scale_z[:, 0:self.z_iext_dim]).to_event(
-                                     1))
-            z_rtpr = pyro.sample("z_rtpr", dist.Normal(
-                loc_z[:, self.z_iext_dim: self.z_iext_dim + self.z_rtpr_dim],
-                scale_z[:,
-                self.z_iext_dim: self.z_iext_dim + self.z_rtpr_dim]).to_event(1))
-            z_epsilon = pyro.sample("z_epsilon",
-                                    dist.Normal(loc_z[:, -self.z_epsilon_dim:],
-                                                scale_z[:, -self.z_epsilon_dim:]).to_event(1))
+            z_iext = pyro.sample(
+                "z_iext",
+                dist.Normal(
+                    loc_z[:, 0 : self.z_iext_dim], scale_z[:, 0 : self.z_iext_dim]
+                ).to_event(1),
+            )
+            z_rtpr = pyro.sample(
+                "z_rtpr",
+                dist.Normal(
+                    loc_z[:, self.z_iext_dim : self.z_iext_dim + self.z_rtpr_dim],
+                    scale_z[:, self.z_iext_dim : self.z_iext_dim + self.z_rtpr_dim],
+                ).to_event(1),
+            )
+            z_epsilon = pyro.sample(
+                "z_epsilon",
+                dist.Normal(
+                    loc_z[:, -self.z_epsilon_dim :], scale_z[:, -self.z_epsilon_dim :]
+                ).to_event(1),
+            )
             return z_iext, z_rtpr, z_epsilon
 
     def model_meta(self, observations, iext, rtpr):
@@ -181,14 +212,22 @@ class MechanisticModelGauss(nn.Module):
         with pyro.plate("data"):
             loc_z, scale_z = self.encoder.forward(observations)  # q(z|x)
 
-            loc_z_iext, scale_z_iext = loc_z[:, 0:self.z_iext_dim], scale_z[:,
-                                                                    0:self.z_iext_dim]
-            z_iext = pyro.sample("z_iext_cls", dist.Normal(loc_z_iext, scale_z_iext).to_event(1))
+            loc_z_iext, scale_z_iext = (
+                loc_z[:, 0 : self.z_iext_dim],
+                scale_z[:, 0 : self.z_iext_dim],
+            )
+            z_iext = pyro.sample(
+                "z_iext_cls", dist.Normal(loc_z_iext, scale_z_iext).to_event(1)
+            )
 
             z_group_dim = self.z_iext_dim + self.z_rtpr_dim
-            loc_z_rtpr, scale_z_rtpr = loc_z[:, self.z_iext_dim: z_group_dim], scale_z[:,
-                                                                               self.z_iext_dim: z_group_dim]
-            z_rtpr = pyro.sample("z_rtpr_cls", dist.Normal(loc_z_rtpr, scale_z_rtpr).to_event(1))
+            loc_z_rtpr, scale_z_rtpr = (
+                loc_z[:, self.z_iext_dim : z_group_dim],
+                scale_z[:, self.z_iext_dim : z_group_dim],
+            )
+            z_rtpr = pyro.sample(
+                "z_rtpr_cls", dist.Normal(loc_z_rtpr, scale_z_rtpr).to_event(1)
+            )
 
             self.q_label(iext=iext, rtpr=rtpr, z_rtpr=z_rtpr, z_iext=z_iext)
 
@@ -197,10 +236,10 @@ class MechanisticModelGauss(nn.Module):
         alpha_rtpr = self.q_rtpr_given_z_rtpr(z_rtpr)
 
         with pyro.poutine.scale(scale=self.aux_loss_multiplier):
-            pyro.sample("iext_cls", dist.Bernoulli(alpha_iext), obs=iext)
+            pyro.sample("iext_cls", dist.Bernoulli(alpha_iext).to_event(1), obs=iext)
 
         with pyro.poutine.scale(scale=self.aux_loss_multiplier):
-            pyro.sample("rtpr_cls", dist.Bernoulli(alpha_rtpr), obs=rtpr)
+            pyro.sample("rtpr_cls", dist.Bernoulli(alpha_rtpr).to_event(1), obs=rtpr)
 
     def guide_meta(self, observations, iext, rtpr):
         """
@@ -214,19 +253,24 @@ class MechanisticModelGauss(nn.Module):
         """
         loc_z, scale_z = self.encoder.forward(observations)  # q(z|x)
 
-        loc_z_iext, scale_z_iext = loc_z[:, 0:self.z_iext_dim], scale_z[:, 0:self.z_iext_dim]
+        loc_z_iext, scale_z_iext = (
+            loc_z[:, 0 : self.z_iext_dim],
+            scale_z[:, 0 : self.z_iext_dim],
+        )
         z_iext = torch.normal(loc_z_iext, scale_z_iext)
         alpha_iext = self.q_iext_given_z_iext(z_iext)
         pred_iext = (alpha_iext > 0.5).float()
 
         z_group_dim = self.z_iext_dim + self.z_rtpr_dim
-        loc_z_rtpr, scale_z_rtpr = loc_z[:, self.z_iext_dim: z_group_dim
-                                   ], scale_z[:, self.z_iext_dim: z_group_dim]
+        loc_z_rtpr, scale_z_rtpr = (
+            loc_z[:, self.z_iext_dim : z_group_dim],
+            scale_z[:, self.z_iext_dim : z_group_dim],
+        )
         z_rtpr = torch.normal(loc_z_rtpr, scale_z_rtpr)
         alpha_rtpr = self.q_rtpr_given_z_rtpr(z_rtpr)
         pred_rtpr = (alpha_rtpr > 0.5).float()
 
-        return {'iext': pred_iext, 'rtpr': pred_rtpr}
+        return {"iext": pred_iext, "rtpr": pred_rtpr}
 
     def recon(self, observations, iext, rtpr, is_post):
         if is_post:
@@ -252,6 +296,13 @@ class MechanisticModelGauss(nn.Module):
         mu_75 = mean + 2 * std
         mu_25 = mean - 2 * std
         l1 = self.l1_func(mean, observations)
-        results = {"l1": l1, "solution_xt": solution_xt, "mu_75": mu_75, "mu_50": mean, "mu_25": mu_25, "std": std,
-                   "z": z}
+        results = {
+            "l1": l1,
+            "solution_xt": solution_xt,
+            "mu_75": mu_75,
+            "mu_50": mean,
+            "mu_25": mu_25,
+            "std": std,
+            "z": z,
+        }
         return results
