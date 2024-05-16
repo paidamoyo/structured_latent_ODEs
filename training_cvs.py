@@ -71,7 +71,7 @@ def input_pred_stats(
     total_elbo = [0.0] * num_losses
     size = 0
     # use the appropriate data loader
-    has_classifier = config.model in ["Mechanistic", "GOKU", "MechanisticGauss"]
+    has_classifier = config.model in ["Mechanistic", "MechanisticGauss"]
     for batch in data_loader:
         # use classification function to compute all predictions for each batch
         batch = batch_to_device(batch, device=device)
@@ -240,7 +240,7 @@ def train(config):
     # build a list of all losses considered
     losses = [loss_basic]
 
-    if config.model in ["Mechanistic", "GOKU", "MechanisticGauss"]:
+    if config.model in ["Mechanistic", "MechanisticGauss"]:
         # ELBO = JitTrace_ELBO if args.jit else Trace_ELBO
         ELBO = Trace_ELBO
         # elbo = ELBO(num_particles=args.num_particles, retain_graph=True)

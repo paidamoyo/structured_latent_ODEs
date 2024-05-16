@@ -161,7 +161,12 @@ class MechanisticModelGauss(nn.Module):
             z = torch.cat((z_iext, z_rtpr), dim=1)
             z = torch.cat((z, z_epsilon), dim=1)
             solution_xt, mean, std = self.decoder.forward(z=z)
-            pyro.sample("y", dist.Normal(mean, std).to_event(1), obs=observations)
+            for id in range(observations.shape[1]):
+                pyro.sample(
+                    f"y_{id}",
+                    dist.Normal(mean[:, id, :], std[:, id, :]).to_event(1),
+                    obs=observations[:, id, :],
+                )
 
         l1_loss = self.l1_func(observations, mean)
         return l1_loss

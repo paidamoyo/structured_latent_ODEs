@@ -45,5 +45,5 @@ def load_config():
     args.constant_std = 1e-2
     # args.solver = 'rk4'
     # select from  [Mechanistic, MechanisticGauss] # MechanisticGauss is the ablation model
-    args.model = "Mechanistic"
+    args.model = "MechanisticGauss"
     return args
