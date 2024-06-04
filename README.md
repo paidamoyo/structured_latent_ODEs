@@ -20,6 +20,7 @@ The code is implemented with the following dependencies:
 
 - [Python  3.8.10](https://github.com/pyenv/pyenv)
 - [Torch 2.3.0](https://pytorch.org/)
+- [Pyro 1.9.0](https://pyro.ai/)
 - Additional python packages can be installed by running: 
 
 ```
@@ -30,17 +31,20 @@ pip install -r requirements.txt
 We consider the following datasets:
 <!-- - [Human Viral Challenge]() -->
 - [Cardiovascular System (CVS)](cvs.ipynb) 
-<!-- - [Synthetic Biology]() -->
+- [Synthetic Biology](https://github.com/microsoft/vi-hds)
 
 ## Model Training
 
 * To train the data specific **SLODE** models run:
   - [training_cvs.py](training_cvs.py) 
+  - [training_proc.py](training_proc.py)
 
 * The data specific hyper-parameters settings can be found at:
   - [config_cvs.py](data/cvs/config_cvs.py) 
+  - [data/proc/config_proc.py](data/proc/config_proc.py)
 
 ## Metrics and Visualizations
 
 * Once the networks are trained and the results are saved, we visualize the data specific key results:
   - [cvs_eval_final.ipynb](cvs_eval_final.ipynb)
+  - [sbio_eval_folds_final.ipynb](sbio_eval_folds_final.ipynb) for cross validation experiments and [sbio_eval_heldout_final.ipynb](sbio_eval_heldout_final.ipynb) for zero-shot heldout device

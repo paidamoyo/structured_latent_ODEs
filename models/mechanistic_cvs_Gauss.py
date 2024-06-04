@@ -35,7 +35,7 @@ class MechanisticModelGauss(nn.Module):
         self.iext_dim = config.iext_dim
         self.rtpr_dim = config.rtpr_dim
 
-        self.aux_loss_multiplier = torch.tensor(46)
+        self.aux_loss_multiplier = config.aux_loss_multiplier
         self.condition_on_device = False
 
         ## Latent Dim

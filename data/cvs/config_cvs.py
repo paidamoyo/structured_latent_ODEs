@@ -1,5 +1,6 @@
 from munch import munchify
 import os
+import torch
 
 
 def load_config():
@@ -21,6 +22,7 @@ def load_config():
     args.z_rtpr_dim = 5
     args.z_epsilon_dim = 5
     args.u_hidden_dim = 25  #
+    args.aux_loss_multiplier = torch.tensor(46)
 
     # Training
     args.seed = 12
@@ -43,7 +45,8 @@ def load_config():
     args.adjoint_solver = True
     args.solver = "midpoint"
     args.constant_std = 1e-2
+    args.quantile_diff = 0.475  # select from [0.25, 0.475]
     # args.solver = 'rk4'
     # select from  [Mechanistic, MechanisticGauss] # MechanisticGauss is the ablation model
-    args.model = "MechanisticGauss"
+    args.model = "Mechanistic"
     return args

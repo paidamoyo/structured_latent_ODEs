@@ -35,7 +35,7 @@ class MechanisticModel(nn.Module):
         self.iext_dim = config.iext_dim
         self.rtpr_dim = config.rtpr_dim
 
-        self.aux_loss_multiplier = torch.tensor(46)
+        self.aux_loss_multiplier = config.aux_loss_multiplier
         self.condition_on_device = False
 
         ## Latent Dim
@@ -159,7 +159,7 @@ class MechanisticModel(nn.Module):
 
         ## Compute Quantile (\tau = 0.75, 0.5)
         median = 0.5
-        diff = 0.475
+        diff = self.config.quantile_diff
         lower = median - diff
         upper = median + diff
 
