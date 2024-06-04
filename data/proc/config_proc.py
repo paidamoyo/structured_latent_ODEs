@@ -25,9 +25,9 @@ def load_config():
     args.mini_batch_size = 36
     args.seed = 12
     args.plot_epoch = 200
-    args.heldout = "R33S34_Y81C76"  # 22
+    # args.heldout = "R33S34_Y81C76"  # 22
     # args.heldout = 'R33S32_Y81C76'
-    # args.heldout = None  # TODO: if heldout is selected then it will be used for testing otherwise cross-validation
+    args.heldout = None  # TODO: if heldout is selected then it will be used for testing otherwise cross-validation
     if args.heldout is None:
         args.folds = 4
         args.split = 1  # TODO  select from [1, 2, 3, 4]
