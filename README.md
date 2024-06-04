@@ -41,7 +41,7 @@ We consider the following datasets:
 
 * The data specific hyper-parameters settings can be found at:
   - [config_cvs.py](data/cvs/config_cvs.py) 
-  - [data/proc/config_proc.py](data/proc/config_proc.py)
+  - [config_proc.py](data/proc/config_proc.py)
 
 ## Metrics and Visualizations
 
